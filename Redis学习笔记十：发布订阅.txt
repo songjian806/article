@@ -1,0 +1,114 @@
+Redis 发布订阅(pub/sub)是一种消息通信模式：发送者(pub)发送消息，订阅者(sub)接收消息。
+Redis 客户端可以订阅任意数量的频道。
+下图展示了频道 channel1 ， 以及订阅这个频道的三个客户端 —— client2 、 client5 和 client1 之间的关系：
+
+
+当有新消息通过 PUBLISH 命令发送给频道 channel1 时， 这个消息就会被发送给订阅它的三个客户端：
+
+
+
+实例
+以下实例演示了发布订阅是如何工作的。在我们实例中我们创建了订阅频道名为 redisChat:
+redis 127.0.0.1:6379> SUBSCRIBE redisChat
+
+Reading messages... (press Ctrl-C to quit)
+1) "subscribe"
+2) "redisChat"
+3) (integer) 1
+现在，我们先重新开启个 redis 客户端，然后在同一个频道 redisChat 发布两次消息，订阅者就能接收到消息。
+redis 127.0.0.1:6379> PUBLISH redisChat "Redis is a great caching technique"
+
+(integer) 1
+
+redis 127.0.0.1:6379> PUBLISH redisChat "Learn redis by runoob.com"
+
+(integer) 1
+
+# 订阅者的客户端会显示如下消息
+1) "message"
+2) "redisChat"
+3) "Redis is a great caching technique"
+1) "message"
+2) "redisChat"
+3) "Learn redis by runoob.com"
+Redis 发布订阅命令
+下面列出了 redis 发布订阅常用命令：
+1.Redis Psubscribe 命令
+Redis Psubscribe 命令订阅一个或多个符合给定模式的频道。
+每个模式以 * 作为匹配符，比如 it* 匹配所有以 it 开头的频道( it.news 、 it.blog 、 it.tweets 等等)。 news.* 匹配所有以 news. 开头的频道( news.it 、 news.global.today 等等)，诸如此类。
+语法
+redis Psubscribe 命令基本语法如下：
+redis 127.0.0.1:6379> PSUBSCRIBE pattern [pattern ...]
+返回值
+接收到的信息。
+实例
+redis 127.0.0.1:6379> PSUBSCRIBE mychannel
+Reading messages... (press Ctrl-C to quit)
+1) "psubscribe"
+2) "mychannel"
+3) (integer) 1
+
+2.Redis Pubsub 命令
+Redis Pubsub 命令用于查看订阅与发布系统状态，它由数个不同格式的子命令组成。
+语法
+redis Pubsub 命令基本语法如下：
+redis 127.0.0.1:6379> PUBSUB <subcommand> [argument [argument ...]]
+返回值
+由活跃频道组成的列表。
+实例
+redis 127.0.0.1:6379> PUBSUB CHANNELS
+(empty list or set)
+
+3.Redis Publish 命令
+Redis Publish 命令用于将信息发送到指定的频道。
+语法
+redis Publish 命令基本语法如下：
+redis 127.0.0.1:6379> PUBLISH channel message
+返回值
+接收到信息的订阅者数量。
+实例
+redis 127.0.0.1:6379> PUBLISH mychannel "hello, i m here"
+(integer) 1
+
+4.Redis Punsubscribe 命令
+Redis Punsubscribe 命令用于退订所有给定模式的频道。
+语法
+redis Punsubscribe 命令基本语法如下：
+redis 127.0.0.1:6379> PUNSUBSCRIBE [pattern [pattern ...]]
+返回值
+这个命令在不同的客户端中有不同的表现。
+实例
+redis 127.0.0.1:6379> PUNSUBSCRIBE mychannel 
+1) "punsubscribe"
+2) "a"
+3) (integer) 1
+
+5.Redis Subscribe 命令
+Redis Subscribe 命令用于订阅给定的一个或多个频道的信息。。
+语法
+redis Subscribe 命令基本语法如下：
+redis 127.0.0.1:6379> SUBSCRIBE channel [channel ...]
+返回值
+接收到的信息
+实例
+redis 127.0.0.1:6379> SUBSCRIBE mychannel 
+Reading messages... (press Ctrl-C to quit)
+1) "subscribe"
+2) "mychannel"
+3) (integer) 1
+1) "message"
+2) "mychannel"
+3) "a"
+
+6.Redis Unsubscribe 命令
+Redis Unsubscribe 命令用于退订给定的一个或多个频道的信息。
+语法
+redis Unsubscribe 命令基本语法如下：
+redis 127.0.0.1:6379> UNSUBSCRIBE channel [channel ...]
+返回值
+这个命令在不同的客户端中有不同的表现。
+实例
+redis 127.0.0.1:6379> UNSUBSCRIBE mychannel 
+1) "unsubscribe"
+2) "a"
+3) (integer) 0

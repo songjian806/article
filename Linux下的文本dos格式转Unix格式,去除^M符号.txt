@@ -1,0 +1,72 @@
+
+
+问：我在Windows中通过FTP传一个文本文件到Linux中，但是打开文本文件后每行最后都有^M的标志。由于很长，用编辑器去除太麻烦，有什么解决办法呢？
+
+答：为了解决这个问题，Linux下专门有两个工具可以互换Windows格式和Linux格式，它们分别是dos2unix和unix2dos。比如用下面的命令就可以将文件名为“filename”文件从Windows格式转换为Linux文本格式。
+
+正文：
+
+在Linux下，不可避免的会用VIM打开一些windows下编辑过的文本文件。我们会发现文件的每行结尾都会有一个^M符号，这是因为 DOS下的编辑器和Linux编辑器对文件行末的回车符处理不一致，
+
+对于回车符的定义：
+Windows：0D0A
+Unix/Linux: 0A
+MAC: 0D
+
+比较快捷的去除这些符号的方法有这么几种：
+
+（1）是用VI的命令：
+    使用vi打开文本文件
+    vi dos.txt
+    命令模式下输入
+    :set fileformat=unix
+    :w
+
+(2) VI下使用正则表达式替换
+   g/^M/s/^M//
+    或者
+   %s/^M//g
+
+（3）使用sed 工具
+    sed ’s/^M//’ filename > tmp_filename
+
+（4）既然window下的回车符多了‘ ’，那么当然通过删除‘ ’ ，也可以实现：
+    tr -d " "
+
+（5）最后一个方法是本人最常用的方法，个人觉得最方便
+    在终端下敲命令：
+    $ dos2unix filename
+    直接转换成unix格式，就OK了！～
+
+在网上又搜索到一篇将UNIX和WINDOWS间的换行转换的文章，学习补充下：
+语法
+dos2unix [-kn] file [newfile] 从DOS转换到UNIX
+unix2dos [-kn] file [newfile] 从UNIX转换到DOS也就是WINDOWS
+-k : 保留该文档原来的 mtime 时间 (不更新文档上次内容经过修改的时间)
+-n : 保留原来的文档,将转换后的内容输入到新文档中 例如: dos2unix -n old new
+
+范例如下:
+
+$cat -v killws
+#!/bin/bash^M
+admin_dir="/home/admin"^M
+function check_user {^M
+ if [[ `whoami` != "admin" ]];then^M
+ echo "Apache only can start by admin user,exit!"^M
+ exit^M
+ fi^M
+}^M
+
+$dos2unix -k killws
+dos2unix: converting file killws to UNIX format ...
+$cat -v killws
+#!/bin/bash
+admin_dir="/home/admin"
+function check_user {
+ if [[ `whoami` != "admin" ]];then
+ echo "Apache only can start by admin user,exit!"
+ exit
+ fi
+}
+
+ 

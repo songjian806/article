@@ -1,0 +1,267 @@
+Redis hash 是一个string类型的field和value的映射表，hash特别适合用于存储对象。
+Redis 中每个 hash 可以存储 232 - 1 键值对（40多亿）。
+实例
+127.0.0.1:6379>  HMSET runoobkey name "redis tutorial" description "redis basic commands for caching" likes 20 visitors 23000
+OK
+127.0.0.1:6379>  HGETALL runoobkey
+1) "name"
+2) "redis tutorial"
+3) "description"
+4) "redis basic commands for caching"
+5) "likes"
+6) "20"
+7) "visitors"
+8) "23000"
+在以上实例中，我们设置了 redis 的一些描述信息(name, description, likes, visitors) 到哈希表的 runoobkey 中。
+Redis hash 命令
+下面列出了 redis hash 基本的相关命令：
+1.Redis Hdel 命令
+Redis Hdel 命令用于删除哈希表 key 中的一个或多个指定字段，不存在的字段将被忽略。
+语法
+redis Hdel 命令基本语法如下：
+redis 127.0.0.1:6379> HDEL KEY_NAME FIELD1.. FIELDN 
+返回值
+被成功删除字段的数量，不包括被忽略的字段。
+实例
+redis 127.0.0.1:6379> HSET myhash field1 "foo"
+(integer) 1
+redis 127.0.0.1:6379> HDEL myhash field1
+(integer) 1
+redis 127.0.0.1:6379> HDEL myhash field2
+(integer) 0
+
+2.Redis Hexists 命令
+Redis Hexists 命令用于查看哈希表的指定字段是否存在。
+语法
+redis Hexists 命令基本语法如下：
+redis 127.0.0.1:6379> HEXISTS KEY_NAME FIELD_NAME 
+返回值
+如果哈希表含有给定字段，返回 1 。 如果哈希表不含有给定字段，或 key 不存在，返回 0 。
+实例
+redis 127.0.0.1:6379> HSET myhash field1 "foo"
+(integer) 1
+redis 127.0.0.1:6379> HEXISTS myhash field1
+(integer) 1
+redis 127.0.0.1:6379> HEXISTS myhash field2
+(integer) 0
+
+3.Redis Hget 命令
+Redis Hget 命令用于返回哈希表中指定字段的值。
+语法
+redis Hget 命令基本语法如下：
+redis 127.0.0.1:6379> HGET KEY_NAME FIELD_NAME 
+返回值
+返回给定字段的值。如果给定的字段或 key 不存在时，返回 nil 。
+实例
+# 字段存在
+
+redis> HSET site redis redis.com
+(integer) 1
+
+redis> HGET site redis
+"redis.com"
+
+
+# 字段不存在
+
+redis> HGET site mysql
+(nil)
+
+4.Redis Hgetall 命令
+Redis Hgetall 命令用于返回哈希表中，所有的字段和值。
+在返回值里，紧跟每个字段名(field name)之后是字段的值(value)，所以返回值的长度是哈希表大小的两倍。
+语法
+redis Hgetall 命令基本语法如下：
+redis 127.0.0.1:6379> HGETALL KEY_NAME 
+返回值
+以列表形式返回哈希表的字段及字段值。 若 key 不存在，返回空列表。
+实例
+redis> HSET myhash field1 "Hello"
+(integer) 1
+redis> HSET myhash field2 "World"
+(integer) 1
+redis> HGETALL myhash
+1) "field1"
+2) "Hello"
+3) "field2"
+4) "World"
+redis> 
+
+5.Redis Hincrby 命令
+Redis Hincrby 命令用于为哈希表中的字段值加上指定增量值。
+增量也可以为负数，相当于对指定字段进行减法操作。
+如果哈希表的 key 不存在，一个新的哈希表被创建并执行 HINCRBY 命令。
+如果指定的字段不存在，那么在执行命令前，字段的值被初始化为 0 。
+对一个储存字符串值的字段执行 HINCRBY 命令将造成一个错误。
+本操作的值被限制在 64 位(bit)有符号数字表示之内。
+语法
+redis Hincrby 命令基本语法如下：
+redis 127.0.0.1:6379> HINCRBY KEY_NAME FIELD_NAME INCR_BY_NUMBER 
+返回值
+执行 HINCRBY 命令之后，哈希表中字段的值。
+实例
+redis> HSET myhash field 5
+(integer) 1
+redis> HINCRBY myhash field 1
+(integer) 6
+redis> HINCRBY myhash field -1
+(integer) 5
+redis> HINCRBY myhash field -10
+(integer) -5
+redis> 
+
+6.Redis Hincrbyfloat 命令
+Redis Hincrbyfloat 命令用于为哈希表中的字段值加上指定浮点数增量值。
+如果指定的字段不存在，那么在执行命令前，字段的值被初始化为 0 。
+语法
+redis Hincrbyfloat 命令基本语法如下：
+redis 127.0.0.1:6379> HINCRBYFLOAT KEY_NAME FIELD_NAME INCR_BY_NUMBER
+返回值
+执行 Hincrbyfloat 命令之后，哈希表中字段的值。
+实例
+redis> HSET mykey field 10.50
+(integer) 1
+redis> HINCRBYFLOAT mykey field 0.1
+"10.60000000000000001"
+redis> HINCRBYFLOAT mykey field -5
+"5.59999999999999964"
+redis> HSET mykey field 5.0e3
+(integer) 0
+redis> HINCRBYFLOAT mykey field 2.0e2
+"5200"
+redis> 
+
+7.Redis Hkeys 命令
+Redis Hkeys 命令用于获取哈希表中的所有域（field）。
+语法
+redis Hkeys 命令基本语法如下：
+redis 127.0.0.1:6379> HKEYS key 
+返回值
+包含哈希表中所有域（field）列表。 当 key 不存在时，返回一个空列表。
+实例
+redis 127.0.0.1:6379> HSET myhash field1 "foo"
+(integer) 1
+redis 127.0.0.1:6379> HSET myhash field2 "bar"
+(integer) 1
+redis 127.0.0.1:6379> HKEYS myhash
+1) "field1"
+2) "field2"
+
+8.Redis Hlen 命令
+Redis Hlen 命令用于获取哈希表中字段的数量。
+语法
+redis Hlen 命令基本语法如下：
+redis 127.0.0.1:6379> HLEN KEY_NAME 
+返回值
+哈希表中字段的数量。 当 key 不存在时，返回 0 。
+实例
+redis 127.0.0.1:6379> HSET myhash field1 "foo"
+(integer) 1
+redis 127.0.0.1:6379> HSET myhash field2 "bar"
+(integer) 1
+redis 127.0.0.1:6379> HLEN myhash
+(integer) 2
+
+9.Redis Hmget 命令
+Redis Hmget 命令用于返回哈希表中，一个或多个给定字段的值。
+如果指定的字段不存在于哈希表，那么返回一个 nil 值。
+语法
+redis Hmget 命令基本语法如下：
+redis 127.0.0.1:6379> HMGET KEY_NAME FIELD1...FIELDN 
+返回值
+一个包含多个给定字段关联值的表，表值的排列顺序和指定字段的请求顺序一样。
+实例
+redis 127.0.0.1:6379> HSET myhash field1 "foo"
+(integer) 1
+redis 127.0.0.1:6379> HSET myhash field2 "bar"
+(integer) 1
+redis 127.0.0.1:6379> HMGET myhash field1 field2 nofield
+1) "foo"
+2) "bar"
+3) (nil)
+
+10.Redis Hmset 命令
+Redis Hmset 命令用于同时将多个 field-value (字段-值)对设置到哈希表中。
+此命令会覆盖哈希表中已存在的字段。
+如果哈希表不存在，会创建一个空哈希表，并执行 HMSET 操作。
+语法
+redis Hmset 命令基本语法如下：
+redis 127.0.0.1:6379> HMSET KEY_NAME FIELD1 VALUE1 ...FIELDN VALUEN  
+返回值
+如果命令执行成功，返回 OK 。
+实例
+redis 127.0.0.1:6379> HMSET myhash field1 "Hello" field2 "World"
+OK
+redis 127.0.0.1:6379> HGET myhash field1
+"Hello"
+redis 127.0.0.1:6379> HGET myhash field2
+"World"
+
+11.Redis Hset 命令
+Redis Hset 命令用于为哈希表中的字段赋值 。
+如果哈希表不存在，一个新的哈希表被创建并进行 HSET 操作。
+如果字段已经存在于哈希表中，旧值将被覆盖。
+语法
+redis Hset 命令基本语法如下：
+redis 127.0.0.1:6379> HSET KEY_NAME FIELD VALUE 
+返回值
+如果字段是哈希表中的一个新建字段，并且值设置成功，返回 1 。 如果哈希表中域字段已经存在且旧值已被新值覆盖，返回 0 。
+实例
+redis 127.0.0.1:6379> HSET myhash field1 "foo"
+OK
+redis 127.0.0.1:6379> HGET myhash field1
+"foo"
+
+redis 127.0.0.1:6379> HSET website google "www.g.cn"       # 设置一个新域
+(integer) 1
+
+redis 127.0.0.1:6379>HSET website google "www.google.com" # 覆盖一个旧域
+(integer) 0
+
+12.Redis Hsetnx 命令
+Redis Hsetnx 命令用于为哈希表中不存在的的字段赋值 。
+如果哈希表不存在，一个新的哈希表被创建并进行 HSET 操作。
+如果字段已经存在于哈希表中，操作无效。
+如果 key 不存在，一个新哈希表被创建并执行 HSETNX 命令。
+语法
+redis Hsetnx 命令基本语法如下：
+redis 127.0.0.1:6379> HSETNX KEY_NAME FIELD VALUE
+返回值
+设置成功，返回 1 。 如果给定字段已经存在且没有操作被执行，返回 0 。
+实例
+redis 127.0.0.1:6379> HSETNX myhash field1 "foo"
+(integer) 1
+redis 127.0.0.1:6379> HSETNX myhash field1 "bar"
+(integer) 0
+redis 127.0.0.1:6379> HGET myhash field1
+"foo"
+
+redis 127.0.0.1:6379> HSETNX nosql key-value-store redis
+(integer) 1
+
+redis 127.0.0.1:6379> HSETNX nosql key-value-store redis       # 操作无效， key-value-store 已存在
+(integer) 0
+
+13.Redis Hvals 命令
+Redis Hvals 命令返回哈希表所有域(field)的值。
+语法
+redis Hvals 命令基本语法如下：
+redis 127.0.0.1:6379> HVALS KEY_NAME FIELD VALUE 
+返回值
+一个包含哈希表中所有域(field)值的列表。 当 key 不存在时，返回一个空表。
+实例
+redis 127.0.0.1:6379> HSET myhash field1 "foo"
+(integer) 1
+redis 127.0.0.1:6379> HSET myhash field2 "bar"
+(integer) 1
+redis 127.0.0.1:6379> HVALS myhash
+1) "foo"
+2) "bar"
+
+# 空哈希表/不存在的key
+
+redis 127.0.0.1:6379> EXISTS not_exists
+(integer) 0
+
+redis 127.0.0.1:6379> HVALS not_exists
+(empty list or set)

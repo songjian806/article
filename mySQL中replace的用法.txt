@@ -1,0 +1,54 @@
+Mysql有什么办法批量去掉某个字段字符中的空格？不仅是字符串前后的空格，还包含字符串中间的空格，答案是 replace，使用mysql自带的 replace 函数，另外还有个 trim 函数。
+ 
+（1）mysql replace 函数
+ 
+语法：replace(object,search,replace)
+ 
+意思：把object中出现search的全部替换为replace
+ 
+案例：
+update `news` set `content`=replace(`content`,' ','');//清除news表中content字段中的空格  
+
+（2）mysql trim 函数
+ 
+语法：trim([{BOTH | LEADING | TRAILING} [remstr] FROM] str)
+ 
+以下举例说明：
+mysql> SELECT TRIM(' phpernote  ');  
+-> 'phpernote'  
+
+mysql> SELECT TRIM(LEADING 'x' FROM 'xxxphpernotexxx');  
+-> 'phpernotexxx'  
+
+mysql> SELECT TRIM(BOTH 'x' FROM 'xxxphpernotexxx');  
+-> 'phpernote'  
+
+mysql> SELECT TRIM(TRAILING 'xyz' FROM 'phpernotexxyz');  
+-> 'phpernotex'  
+MySQL数据库中插入数据的时候，由于疏忽，有一列文字有些行前面多了一个空格，出于强迫症以及避免以后可能出现问题，我决定把这个空格给干掉,在网上搜到的方法大多数是直接使用replace：
+
+UPDATE example
+SET col = replace(col, ' ', '')
+WHERE col replace '^ ';
+ 
+使用这种方法固然可以把行首的空格去掉，但是列中文字间用于分割词语的空格也会被去掉，一大片文字会连起来，故不可行。 
+后来我想使用replace的时候能不能使用正则来匹配呢，几番搜索的结果是不可行。 
+最后我想了一个我认为较为简单可行的方法：
+
+首先使用CONCAT()在有空格的行前面加一个字符‘x’：
+
+ 
+
+UPDATE example
+SET col = CONCAT('x', col)
+WHERE col REGEXP '^ ';
+ 
+
+这样下来行前面多了两个字符 ‘x‘。
+
+然后使用REPLACE来把多的两个字符一起去掉：
+
+
+UPDATE example
+SET col = REPLACE(col, 'x ', '')
+WHERE col REGEXP '^x ';

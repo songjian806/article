@@ -1,0 +1,257 @@
+大家好！我是handsomecui，下面我为大家讲解一下shell脚本的写法，讲的不好的地方，欢迎大家留言拍砖。
+
+1.在linux下会写shell脚本是非常重要的，下面我参照例子给大家展示几个脚本，顺带这学习shell 的语法：
+
+什么时候helloworld是必不可少的，第一个脚本肯定与helloworld是离不开的：
+
+#!binsh
+a=hello world!
+num=2
+echo a is  $a num is  ${num}nd
+
+运行结果： a is  hello world! num is  2nd
+
+shell脚本简单易懂，只要有一点点c语言的基础，这些都是小case;
+
+2.下面带着大家学学if语句：
+
+先抛出一个问题：写一个脚本，判断当前所用的shell
+复制代码
+
+#!binsh
+#注意if的空格以及[]里面的空格这里错了半天啊
+if [ $SHELL = binbash ];then
+echo your login shell is the bash n
+echo SHELL is  $SHELL
+else 
+echo your login shell is not bash but $SHELL
+fi
+#[ -f somefile ]  判断是否是一个文件
+#[ -x binls ]  判断binls是否存在并有可执行权限
+#{ -n $var }  判断$var变量是否有值
+#[ &a = $b ]  判断$a和$b是否相等
+[ -f etcshadow ] && echo This computer uses shadow passwords
+if [ -f etcshadow ];then
+echo 电脑密码使用隐藏字符
+else
+echo 并没有
+fi
+
+复制代码
+
+#是注释的意思，相关部分已经在里面详细给大家注释解释了，注意if语句的格式
+
+if[];then
+
+elif[];then
+
+else
+
+fi
+
+另外注意if语句还可以简单的用&&与或语句来代替;另外如果想要深入了解if可以找男人test(在linux遇到问题要学会找男人解决，man)
+
+3.为了让大家更加熟练的运用shell，那么练习下吧，问题：写一个脚本使其从一个文件里面读入有echo的语句，并把其写在本文件末尾;
+复制代码
+
+#!binsh
+#-r代表此文件是否可读，具体见man test
+mailfolder=homehandsomeworklinux_learnshell_learnreadme.txt
+#[ -r $mailfolder ]  { echo Can not read $mailfolder ; exit 1;}
+#echo $mailfolder has mail from  
+#grep ^echo  $mailfolder
+
+if [ -r $mailfolder ];then
+    echo $mailfolder has massage from  
+    echo  grep '^echo ' $mailfolder  readme2.txt
+    chmod +r readme2.txt
+    cat readme2.txt  $mailfolder
+    rm -f readme2.txt
+else
+    echo Can not read $mailfolder
+    touch $mailfolder
+    chmod +rw $mailfolder
+    echo echo 人生自古谁无死，六区蛋清找旱情!   $mailfolder
+fi
+
+复制代码
+
+这里由于重定向不能本文见输出到本文件输出，于是我就想了个办法，新建个文件，再重定向到这个文件，大神有别的简单方法可以下面留言拍砖;
+
+4.接下来，我们练习下while的用法，老规矩具体问题来分析;
+
+问题：写一个脚本（不建议使用for变量--for是根据空格取值）
+
+1.设定变量FILE的值为etcpasswd
+
+2.依次向etcpasswd中的每个用户问好，并且说出对方的ID什么（Hello,root，your UID is0.）
+
+3.统计一个有多少个用户
+
+ 
+复制代码
+
+#!binbash
+fl=etcpasswd
+count=`cat $fl  wc -l`
+#下面是一个管道，下面循环读文件中的每一行
+cat $fl 
+while read line
+do
+    user=`echo $lineawk -F '' '{print $1}'`
+    #代表以 ：分段$1就是取第1段
+    uid=`echo $lineawk -F '' '{print $3}'`
+    echo hello, $user Your UID is $uid
+done
+echo ====User_count$count====
+#前面求得的用户数
+
+复制代码
+
+ 
+
+这里要注意到awk的用法，可以找linux的男人解决;
+
+5.练习一下for语句吧
+
+问题：写个脚本;
+
+1.切换工作目录至tmp
+2.依次向tmp目录中的每个文件或子目录问好（Hello,log）
+3.统计tmp目录下共有多个文件，并显示出来
+
+#!binbash
+cd tmp
+for i in tmp
+do
+    echo Hello , $i
+done
+count=`ls -lgrep '^-'wc -l`
+echo ====file_count$count====
+
+ 
+
+ 这个问题就相对简单了些，一个for语句就可以搞定，当然可以while搞搞
+
+6.那么问题来了：
+
+question：
+
+传递两个整数给脚本，让脚本分别计算并显示这两个整数的和，差，积，商
+
+ 
+按 Ctrl+C 复制代码
+按 Ctrl+C 复制代码
+
+ 
+
+这里要注意的是，需要传入两个参数;
+
+具体用到的一些知识请看下面：
+
+读到这里大家对上面的小脚本是不是感觉特别easy了，哈哈;
+
+7.写一个脚本;求1到100的和？
+复制代码
+
+#!binbash
+sum=0
+i=1
+while [ $i -le 100 ]
+do
+    sum=$(($sum + $i))
+    i=$(($i+1))
+done
+echo $sum
+
+复制代码
+
+这个脚本就so easy了;
+
+8.接下来，我们写个很实用的脚本吧，假设你现在在机房，你想要看看机房哪些ip在开着，方便咱。。。，是吧。
+
+我们可以 通过ping命令测试192.168.0.151到192.168.0.254之间的所有主机是否在线
+
+ 
+复制代码
+
+#!binbash
+for i in `seq 2 254`
+do
+    ping -c1 -w1 192.168.51.$i  devnull 2&1
+    #-c可以指定ping的次数，-w测试的时间 -w 1就是1秒中无论成功失败都结束
+    #-c -w后面都要输入参数所以都要带上l
+    #$代表最后命令退出状态，0代表没错，其他代表有错
+    [ $ -eq 0 ] && echo 192.168.51.$i IP is UP!  echo 192.168.51.$i IP is down!
+done
+
+复制代码
+
+ 
+
+在这里2&1代表不显示错误信息，其实就是把错误重定向到标准输出，然后重定向到devnull，devnull就是个黑洞，写入的任何东西都会丢失，其实简要说就是把正确或错误的输出扔到垃圾桶。
+
+写到这里大家是不是感觉耳目一新呐，哈哈！
+
+随笔练习：还有点bug
+复制代码
+
+#binbash
+i=1
+sum=0
+#while
+while [ $i -le 100 ]
+do
+        ((sum=sum+i))
+        ((i=i+1))
+done
+echo $sum
+#for
+sum=0
+for ((j=1;j=100;j++))
+do
+        ((sum=sum+j))
+done
+echo $sum
+
+#select
+select flag in $@
+do
+        case $flag in
+                $1)echo $1;;
+                $2)echo $2;;
+                $3)echo $3;;
+                $4)echo $4;;
+                )echo input error
+                break ;;
+        esac
+done
+#shift
+echo -e the all arg isn
+while [ $1 ]
+do
+        echo $1
+        shift
+done
+#if
+num=`ls  wc -l`
+[ num == 0 ] && echo -e have no filen  echo -e there are $num filesn
+for file in `ls`
+do
+        echo this file $file is 
+        [ -f $file ] && echo -e ordinary file
+        if [ -d $file ];then
+                echo -e dictionary file;
+            fi
+done
+
+#function
+filename=
+rename(){
+        filename=echo `date`  awk -F ' ' '{print $1 $2 $3}'
+}
+rename
+echo -e filename is $filename
+[ $ == 0 ] && mkdir $filename  echo -e have errorn
+
+复制代码

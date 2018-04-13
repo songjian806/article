@@ -1,0 +1,105 @@
+ SQL中IN和EXISTS用法的区别
+1.exist,not exist一般都是与子查询一起使用. In可以与子查询一起使用,也可以直接in (a,b.....)
+
+2.exist会针对子查询的表使用索引. not exist会对主子查询都会使用索引. in与子查询一起使用的时候,只能针对主查询使用索引. not in则不会使用任何索引. 注意,一直以来认为exists比in效率高的说法是不准确的。
+
+in 是把外表和内表作hash 连接，而exists是对外表作loop循环，每次loop循环再对内表进行查询。
+如果查询的两个表大小相当，那么用in和exists差别不大。
+如果两个表中一个较小，一个是大表，则子查询表大的用exists，子查询表小的用in：
+例如：表A（小表），表B（大表）1：select * from A where cc in (select cc from B)
+效率低，用到了A表上cc列的索引；select * from A where exists(select cc from B where cc=A.cc)
+效率高，用到了B表上cc列的索引。
+相反的2：select * from B where cc in (select cc from A)
+效率高，用到了B表上cc列的索引；select * from B where exists(select cc from A where cc=B.cc)
+效率低，用到了A表上cc列的索引。
+not in 和not exists如果查询语句使用了not in 那么内外表都进行全表扫描，没有用到索引；而not extsts 的子查询依然能用到表上的索引。所以无论那个表大，用not exists都比not in要快。
+3.exist与in都可以实现一个目的.二者都可以用来过滤数据.
+
+示例:
+复制代码
+
+select count(1) from t1;--160W
+select count(1) from t2; --90W
+
+
+SELECT count(1)
+FROM t1 a
+WHERE EXISTS (SELECT accountid
+FROM t2 b
+WHERE a.keyid = b.keyid AND a.ideaid = b.ideaid);--主大子小,不适合使用exist,因为exist只会利用子表t2的复合索引keyid+ideaid,而子表内容要小与主表,主表由于无法使用索引,查询效率低下.
+
+
+
+select count(1) from t1 a where accountid in (SELECT accountid
+FROM t2 b
+WHERE a.keyid = b.keyid AND a.ideaid = b.ideaid);--主大子小,适合用in,因为in只会使用主表t1里面的复合主键keyid-ideaid,在主表大于子表的情况下,会很好的利用主表的索引.
+
+          
+--后二条sql的执行结果都是一样的.说明exist与in在用法上可以达到一个目的,不同的地方是
+--1.性能的考虑此时就按子表大主表小用exist,子表小主表大用in的原则就可以.
+--2.写法的不同, exist的where条件是:      "......  where exist (..... where a.id=b.id)"
+--in的where条件是: " ...... where  id in ( select id .... where a.id=b.id)"
+
+复制代码
+4. exist的原理:
+
+exists做为where 条件时，是先对where 前的主查询询进行查询，然后用主查询的结果一个一个的代入exists的查询进行判断，如果为真则输出当前这一条主查询的结果，否则不输出
+
+比如
+
+如下：
+表A
+ID NAME
+1 A1
+2 A2
+3 A3
+
+表B
+ID AID NAME
+1 1   B1
+2 2   B2
+3 2   B3
+
+表A和表B是一对多的关系 A.ID --> B.AID
+
+SELECT ID , NAME FROM A WHERE EXISTS (SELECT * FROM B WHERE A.ID = B.AID)
+执行结果为
+1 A1
+2 A2
+原因可以按照如下分析
+SELECT ID , NAME FROM A WHERE EXISTS (SELECT * FROM B WHERE B.AID = 1)
+-->SELECT * FROM B WHERE B.AID = 1有值返回真所以有数据
+
+SELECT ID , NAME FROM A WHERE EXISTS (SELECT * FROM B WHERE B.AID = 2)
+-->SELECT * FROM B WHERE B.AID = 2有值返回真所以有数据
+
+SELECT ID , NAME FROM A WHERE EXISTS (SELECT * FROM B WHERE B.AID = 3)
+-->SELECT * FROM B WHERE B.AID = 3无值返回真所以没有数据
+
+NOT EXISTS 就是反过来
+SELECT ID , NAME FROM A WHERE NOT EXIST (SELECT * FROM B WHERE A.ID = B.AID)
+执行结果为
+3 A3
+
+5. in 与 =的区别
+select name from student where name in ('zhang','wang','li','zhao');
+与
+select name from student where name='zhang' or name='li' or name='wang' or name='zhao'
+的结果是相同的。
+
+in的字段也可以与其它字段建复合索引.
+
+比如
+
+T1包含下面key, accountd,groupid.
+复制代码
+
+SELECT   *
+  FROM   T1  a
+ WHERE       a.groupid = 2001
+         AND a.accountid = 1001
+         AND a.key IN ('abc', 'def', 'ala');
+
+--上面的sql可以将accountid,key建成复合索引.
+
+复制代码
